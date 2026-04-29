@@ -73,6 +73,7 @@ echo "Done loading modules"
 
 export TARGET="${TARGET:-DEBUG}"
 export PYTHONPATH=${HOME}/IWRAP_ACTORS:${PYTHONPATH}
+export PYTHONPATH=${DINA_ROOT}/tools/pyutil:${PYTHONPATH}
 
 export DINA_ROOT=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/../.." &> /dev/null && pwd)
 export GIT_URL=$(git remote get-url origin)

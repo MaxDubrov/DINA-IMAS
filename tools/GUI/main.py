@@ -310,6 +310,7 @@ class DINA_GUI(uiclass, baseclass):
         self.TokamakData = {}
         self.controlData = {}
         self.generalData = {}
+        self.GreenData = {}
         self.DINAData = {}
         
         self.externalData = []
@@ -353,6 +354,13 @@ class DINA_GUI(uiclass, baseclass):
         verticalLayout.addWidget(self.tabPulseScheduleChild)      
         
         
+        self.tabGreenDataChild = QtWidgets.QTabWidget(self.tabGreenData)
+        self.tabGreenDataChild.setObjectName("tabGreenDataChild")
+        verticalLayout = QtWidgets.QVBoxLayout(self.tabGreenData)
+        verticalLayout.setObjectName("tabGreenDataLayout")       
+        verticalLayout.addWidget(self.tabGreenDataChild)  
+
+
         self.tabDINADataChild = QtWidgets.QTabWidget(self.tabDINAData)
         self.tabDINADataChild.setObjectName("tabDINADataChild")
         verticalLayout = QtWidgets.QVBoxLayout(self.tabDINAData)
@@ -421,7 +429,11 @@ class DINA_GUI(uiclass, baseclass):
         self.WorkflowData["zmin"] = CodeParameter(mytype=float, value=-6.0, name='Z_min', comment = 'Uppermost Z coordinate of the 2D equilibrium grid', unit='m')
         self.WorkflowData["zmax"] = CodeParameter(mytype=float, value=6.0, name='Z_max', comment = 'Bottommost Z coordinate of the 2D equilibrium grid', unit='m')
   
-        
+
+        self.GreenData["kpr"] = CodeParameter(mytype=int, value=1, name='Key print', comment = 'Key to print debug and diagnostic logs')
+        self.GreenData["dr"] = CodeParameter(mytype=float, value=1.5e-2, name='dr', comment = 'Reference radial size of toroidal filament of subdivision', unit='m')
+        self.GreenData["dz"] = CodeParameter(mytype=float, value=1.5e-2, name='dz', comment = 'Reference vertical size of toroidal filament of subdivision', unit='m')
+
         self.DINAData["kpr"] = CodeParameter(mytype=int, value=1, name='Key print', comment = 'Key to print debug and diagnostic logs')
         self.DINAData["tt_kavin"] = CodeParameter(mytype=float, value=3.5, comment = 'Time to switch from 0D transport model to 1D', name='Time 0D->1D', unit='s')
         self.DINAData["tau"] = CodeParameter(mytype=float, value=2.e-3, name='dt start', comment = 'Time step before switching to 1D transport model', unit='s')
@@ -513,12 +525,13 @@ class DINA_GUI(uiclass, baseclass):
 
         self.currentTable = None
 
-        #self.RefreshUI()
-        self.RefreshWorkflowData()
+        self.RefreshUI()
+
+        #self.RefreshWorkflowData()
         #self.RefreshTokamakData()
-        self.RefreshPulseSchedule()
-        self.RefreshDINAData()
-        self.RefreshControlData()
+        #self.RefreshPulseSchedule()
+        #self.RefreshDINAData()
+        #self.RefreshControlData()
         
         
     def AddCanvas(self, i, toolbar = 1):
@@ -1051,6 +1064,14 @@ class DINA_GUI(uiclass, baseclass):
       if (currentTab == self.tabDatabase):
         print(currentTab + ' is selected')
 
+      if (currentTab == self.tabGreenData):
+        (filepath, selectedFilter) = QtWidgets.QFileDialog.getOpenFileName(self, "Open code parameters XML", self.directoryLoad, "XML Files (*.xml)")
+        print(currentTab.objectName() + ' load file: ' + filepath)
+        tree = ET.parse(filepath)
+        XML_root = tree.getroot()
+        self.LoadGreenData(XML_root)
+        self.RefreshGreenData()
+
       if (currentTab == self.tabDINAData):
         (filepath, selectedFilter) = QtWidgets.QFileDialog.getOpenFileName(self, "Open code parameters XML", self.directoryLoad, "XML Files (*.xml)")
         print(currentTab.objectName() + ' load file: ' + filepath)
@@ -1181,6 +1202,17 @@ class DINA_GUI(uiclass, baseclass):
         f.write(xmlstr)
         f.close()
 
+
+      if (currentTab == self.tabGreenData):
+        (filepath, selectedFilter) = QtWidgets.QFileDialog.getSaveFileName(self, "Save DINA-Green parameters",
+                                        self.directorySave + '/codeparam_green.xml',
+                                        "DINA-Green parameters (*.xml)")
+        xmlroot = self.SaveGreenData()
+        xmlstr = minidom.parseString(ET.tostring(xmlroot)).toprettyxml(indent="   ")
+        f = open(filepath, 'w')
+        f.write(xmlstr)
+        f.close()
+      
       if (currentTab == self.tabDINAData):
         (filepath, selectedFilter) = QtWidgets.QFileDialog.getSaveFileName(self, "Save DINA parameters",
                                         self.directorySave + '/codeparam_dina.xml',
@@ -1220,6 +1252,7 @@ class DINA_GUI(uiclass, baseclass):
       self.RefreshWorkflowData()
       #self.RefreshTokamakData()
       self.RefreshPulseSchedule()
+      self.RefreshGreenData()
       self.RefreshDINAData()
       self.RefreshControlData()
       #self.RefreshExternalData()
@@ -1270,6 +1303,19 @@ class DINA_GUI(uiclass, baseclass):
       self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['density'], "Ion density")
       
          
+    def RefreshGreenData(self):
+      self.tabGreenDataChild.clear()
+
+      params = []
+      
+      names = ('kpr',)
+      params.append([self.GreenData[k] for k in names])
+      
+      names = ('dr','dz')
+      params.append([self.GreenData[k] for k in names])
+
+      self.CreateInputTab(self.tabGreenDataChild, params, 'Parameters')
+
       
     def RefreshDINAData(self):
       self.tabDINADataChild.clear()
@@ -1286,7 +1332,7 @@ class DINA_GUI(uiclass, baseclass):
       names = ('grid_n', 'grid_rho', 'grid_alpha')
       params.append([self.DINAData[k] for k in names])
       
-      names = ('tt_kavin', 'tt_dina')
+      names = ('tt_kavin',)
       params.append([self.DINAData[k] for k in names])
       
       names = ('tau', 'tau_sim', 'tau_dw')
@@ -1301,17 +1347,25 @@ class DINA_GUI(uiclass, baseclass):
       self.CreateInputTab(self.tabDINADataChild, params, 'Parameters1')
       
       
-      
       params = []
       
       names = ('bohm_gbohm', 'key_t11', 'pcchp_end', 'q_swth', 'coef_p_lh')
       params.append([self.DINAData[k] for k in names])
       
+      self.CreateInputTab(self.tabDINADataChild, params, 'Parameters2')
+
+
+      params = []
+
+      names = ('tt_dina',)
+      params.append([self.DINAData[k] for k in names])
+
       names = ('ener_ext', 'dens_ext', 'ajb_ext')
       params.append([self.DINAData[k] for k in names])
+
+      self.CreateInputTab(self.tabDINADataChild, params, 'External transport')
       
-      self.CreateInputTab(self.tabDINADataChild, params, 'Parameters2')
-      
+
       self.CreateInputTabGaps(self.tabDINADataChild, self.gapsData, 'Gaps')
       
       
@@ -1612,6 +1666,19 @@ class DINA_GUI(uiclass, baseclass):
         element.text = self.WorkflowData[key].widget.text()
       return root
     
+
+    def LoadGreenData(self, xmlroot):
+      for name in self.GreenData:
+        print(name)
+        self.GreenData[name].SetValue(xmlroot.find(name).text)
+
+    def SaveGreenData(self):
+      root = ET.Element("parameters")
+      for key in self.GreenData:
+        element = ET.SubElement(root, key)
+        element.text = self.GreenData[key].widget.text()
+      return root
+
 
     def LoadDINAData(self, xmlroot):
       

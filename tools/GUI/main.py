@@ -169,6 +169,107 @@ class WaveformImpurity(Waveform):
     self.z = z
 
 
+
+class IonData():
+  def __init__(self, z=None, m=None, label=None):
+    self.z = z
+    self.m = m
+    self.label = label
+    if (self.label == None):
+      self.DefineLabel()
+    elif (self.z == None):
+      self.DefineZ()
+
+  def DefineZ(self):
+    label = self.label
+    if label == 'H':
+      z = 1
+      m = 1.
+    if label == 'D':
+      z = 1
+      m = 2.
+    if label == 'T':
+      z = 1
+      m = 3.
+    if label == 'He':
+      z = 2
+      m = 4.
+    if label == 'Be':
+      z = 4
+      m = 9.
+    if label == 'C':
+      z = 6
+      m = 12.
+    if label == 'N':
+      z = 7
+      m = 14.
+    if label == 'O':
+      z = 8
+      m = 16.
+    if label == 'Ne':
+      z = 10
+      m = 20.
+    if label == 'Ar':
+      z = 18
+      m = 40.
+    if label == 'W':
+      z = 74
+      m = 183.84
+    self.z = z
+    self.m = m
+
+  def DefineLabel(self):
+    z = self.z
+    m = self.m
+    if z == 1:
+      if m == None:
+        m = 2.
+        print('Mass is not set for z==1, using m=2 as default')
+      if m == 1.:
+        label = 'H'
+      elif m == 2.:
+        label = 'D'
+      elif m == 3.:
+        label = 'T'
+      else:
+        print('Incorrect mass=' + str(m) + ' for z==1')
+    elif z == 2:
+      if m == None:
+        m = 4.
+      label = 'He'
+    elif z == 4:
+      if m == None:
+        m = 9.
+      label = 'Be'
+    elif z == 6:
+      if m == None:
+        m = 12.
+      label = 'C'
+    elif z == 7:
+      if m == None:
+        m = 14.
+      label = 'N'
+    elif z == 8:
+      if m == None:
+        m = 16.
+      label = 'O'
+    elif z == 10:
+      if m == None:
+        m = 20.
+      label = 'Ne'
+    elif z == 18:
+      if m == None:
+        m = 40.
+      label = 'Ar'
+    elif z == 74:
+      if m == None:
+        m = 183.84
+      label = 'W'
+    else:
+      print('Unimplemented ion z = ' + str(z))
+    self.label = label
+
+
 class ControlPoint():
   def __init__(self, r=0., z=0.):
     self.widget_r = QtWidgets.QTableWidgetItem(str(r))
@@ -315,6 +416,7 @@ class DINA_GUI(uiclass, baseclass):
         
         self.externalData = []
         
+        self.Ions = [IonData(label='D'), IonData(label='T'), IonData(label='Be'), IonData(label='Ne'), IonData(label='Ar'), IonData(label='W')]
         
 
         self.timeTraceGraph = Graph(self)
@@ -518,20 +620,16 @@ class DINA_GUI(uiclass, baseclass):
         self.PulseSchedule['power_ic'] = Waveform(unit='MW', mult=1.e-6, name='ICH power')
         self.PulseSchedule['elong'] = Waveform(unit=None, name='Elongation')
         self.PulseSchedule['gaps'] = Waveform(unit='m', name='Gaps')
-        self.PulseSchedule['gaps_term'] = Waveform(unit='m', name='Gaps_Termination')
-        self.PulseSchedule['r_ax'] = Waveform(unit='m', name='R axis')
+        self.PulseSchedule['r_ax'] = Waveform(unit='m', name='Major radius')
         self.PulseSchedule['a_pl'] = Waveform(unit='m', name='Minor radius')
+        self.PulseSchedule['gaps_term'] = Waveform(unit='m', name='Gaps - Termination')
+        self.PulseSchedule['r_ax_term'] = Waveform(unit='m', name='Major radius - Termination')
+        self.PulseSchedule['a_pl_term'] = Waveform(unit='m', name='Minor radius - Termination')
 
 
         self.currentTable = None
 
         self.RefreshUI()
-
-        #self.RefreshWorkflowData()
-        #self.RefreshTokamakData()
-        #self.RefreshPulseSchedule()
-        #self.RefreshDINAData()
-        #self.RefreshControlData()
         
         
     def AddCanvas(self, i, toolbar = 1):
@@ -1275,6 +1373,9 @@ class DINA_GUI(uiclass, baseclass):
       names = ('rmin','rmax','zmin','zmax')
       params.append([self.WorkflowData[k] for k in names])
 
+      names = ('bt0','rs0')
+      params.append([self.WorkflowData[k] for k in names])
+
       self.CreateInputTab(self.tabWorkflowDataChild, params, 'Parameters')
       
     
@@ -1293,9 +1394,11 @@ class DINA_GUI(uiclass, baseclass):
       
       self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['elong'], "Elongation")
       self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['gaps'], "Gaps")
-      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['gaps_term'], "Gaps_term")
-      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['r_ax'], "R axis")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['r_ax'], "Major radius")
       self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['a_pl'], "Minor radius")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['gaps_term'], "Gaps - Termination")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['r_ax_term'], "Major radius - Termination")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['a_pl_term'], "Minor radius - Termination")
 
       self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['power_ec'], "ECRH")
       self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['power_ic'], "ICRH")
@@ -1332,27 +1435,27 @@ class DINA_GUI(uiclass, baseclass):
       names = ('grid_n', 'grid_rho', 'grid_alpha')
       params.append([self.DINAData[k] for k in names])
       
-      names = ('tt_kavin',)
-      params.append([self.DINAData[k] for k in names])
-      
       names = ('tau', 'tau_sim', 'tau_dw')
       params.append([self.DINAData[k] for k in names])
       
       #names = ('rs0', 'bt0')
       #params.append([self.DINAData[k] for k in names])
       
+      names = ('bohm_gbohm', 'key_t11', 'pcchp_end', 'q_swth', 'coef_p_lh')
+      params.append([self.DINAData[k] for k in names])
+
+      self.CreateInputTab(self.tabDINADataChild, params, 'Parameters')
+
+
+      params = []
+
+      names = ('tt_kavin',)
+      params.append([self.DINAData[k] for k in names])
+
       names = ('p', 'T_e', 'T_i', 'gam', 'gain_puff')
       params.append([self.DINAData[k] for k in names])
       
-      self.CreateInputTab(self.tabDINADataChild, params, 'Parameters1')
-      
-      
-      params = []
-      
-      names = ('bohm_gbohm', 'key_t11', 'pcchp_end', 'q_swth', 'coef_p_lh')
-      params.append([self.DINAData[k] for k in names])
-      
-      self.CreateInputTab(self.tabDINADataChild, params, 'Parameters2')
+      self.CreateInputTab(self.tabDINADataChild, params, '0D Transport')
 
 
       params = []
@@ -1499,6 +1602,7 @@ class DINA_GUI(uiclass, baseclass):
       self.PulseSchedule['power_ic'].SetData(time, data, names=['P_IC'])
 
       data = [ion.n_i_volume_average.reference.data for ion in ps.density_control.ion]
+      self.Ions = [IonData(label=ion.label) for ion in ps.density_control.ion]
       names = [ion.label for ion in ps.density_control.ion]
       time = ps.density_control.ion[0].n_i_volume_average.reference.time
       self.PulseSchedule['density'].SetData(time, data, names=names)
@@ -1511,10 +1615,6 @@ class DINA_GUI(uiclass, baseclass):
       time = ps.position_control.gap[0].value.reference.time
       self.PulseSchedule['gaps'].SetData(time, data, names=self.GapName)    
 
-      data = [gap.value.reference.data for gap in ps_dw.position_control.gap]
-      time = ps_dw.position_control.gap[0].value.reference.time
-      self.PulseSchedule['gaps_term'].SetData(time, data, names=self.GapName)  
-
       data = [ps.position_control.geometric_axis.r.reference.data]
       time = ps.position_control.geometric_axis.r.reference.time
       self.PulseSchedule['r_ax'].SetData(time, data, names=['R_ax'])   
@@ -1522,6 +1622,18 @@ class DINA_GUI(uiclass, baseclass):
       data = [ps.position_control.minor_radius.reference.data]
       time = ps.position_control.minor_radius.reference.time
       self.PulseSchedule['a_pl'].SetData(time, data, names=['a']) 
+
+      data = [gap.value.reference.data for gap in ps_dw.position_control.gap]
+      time = ps_dw.position_control.gap[0].value.reference.time
+      self.PulseSchedule['gaps_term'].SetData(time, data, names=self.GapName)  
+
+      data = [ps_dw.position_control.geometric_axis.r.reference.data]
+      time = ps_dw.position_control.geometric_axis.r.reference.time
+      self.PulseSchedule['r_ax_term'].SetData(time, data, names=['R_ax'])   
+      
+      data = [ps_dw.position_control.minor_radius.reference.data]
+      time = ps_dw.position_control.minor_radius.reference.time
+      self.PulseSchedule['a_pl_term'].SetData(time, data, names=['a']) 
 
 
     def SavePulseSchedule(self):
@@ -1581,6 +1693,11 @@ class DINA_GUI(uiclass, baseclass):
       wf = self.PulseSchedule['density']
       ps.density_control.ion.resize(wf.NumData())
       for i in range(wf.NumData()):
+        ps.density_control.ion[i].label = self.Ions[i].label
+        ps.density_control.ion[i].element.resize(1)
+        ps.density_control.ion[i].element[0].z_n = float(self.Ions[i].z)
+        ps.density_control.ion[i].element[0].m = self.Ions[i].m
+        ps.density_control.ion[i].element[0].atoms_n = 1
         ps.density_control.ion[i].n_i_volume_average.reference_name = RefName_RUFT
         ps.density_control.ion[i].n_i_volume_average.reference.time = wf.GetTime()
         ps.density_control.ion[i].n_i_volume_average.reference.data = wf.GetData(i)
@@ -1601,6 +1718,17 @@ class DINA_GUI(uiclass, baseclass):
         ps.position_control.gap[i].value.reference.time = wf.GetTime()
         ps.position_control.gap[i].value.reference.data = wf.GetData(i)
 
+      wf = self.PulseSchedule['r_ax']
+      ps.position_control.geometric_axis.r.reference_name = RefName_RUFT
+      ps.position_control.geometric_axis.r.reference.time = wf.GetTime()
+      ps.position_control.geometric_axis.r.reference.data = wf.GetData(0)
+
+      wf = self.PulseSchedule['a_pl']
+      ps.position_control.minor_radius.reference_name = RefName_RUFT
+      ps.position_control.minor_radius.reference.time = wf.GetTime()
+      ps.position_control.minor_radius.reference.data = wf.GetData(0)
+
+
       wf = self.PulseSchedule['gaps_term']
       ps_dw.position_control.gap.resize(wf.NumData())
       for i in range(wf.NumData()):
@@ -1611,16 +1739,17 @@ class DINA_GUI(uiclass, baseclass):
         ps_dw.position_control.gap[i].value.reference_name = RefName_RD
         ps_dw.position_control.gap[i].value.reference.time = wf.GetTime()
         ps_dw.position_control.gap[i].value.reference.data = wf.GetData(i)
- 
-      wf = self.PulseSchedule['r_ax']
-      ps.position_control.geometric_axis.r.reference_name = RefName_RUFT
-      ps.position_control.geometric_axis.r.reference.time = wf.GetTime()
-      ps.position_control.geometric_axis.r.reference.data = wf.GetData(0)
 
-      wf = self.PulseSchedule['a_pl']
-      ps.position_control.minor_radius.reference_name = RefName_RUFT
-      ps.position_control.minor_radius.reference.time = wf.GetTime()
-      ps.position_control.minor_radius.reference.data = wf.GetData(0)
+      wf = self.PulseSchedule['r_ax_term']
+      ps_dw.position_control.geometric_axis.r.reference_name = RefName_RD
+      ps_dw.position_control.geometric_axis.r.reference.time = wf.GetTime()
+      ps_dw.position_control.geometric_axis.r.reference.data = wf.GetData(0)
+
+      wf = self.PulseSchedule['a_pl_term']
+      ps_dw.position_control.minor_radius.reference_name = RefName_RD
+      ps_dw.position_control.minor_radius.reference.time = wf.GetTime()
+      ps_dw.position_control.minor_radius.reference.data = wf.GetData(0)
+
 
       return ps, ps_dw
     
@@ -1662,6 +1791,7 @@ class DINA_GUI(uiclass, baseclass):
     def SaveWorkflowData(self):
       root = ET.Element("parameters")
       for key in self.WorkflowData:
+        print(key)
         element = ET.SubElement(root, key)
         element.text = self.WorkflowData[key].widget.text()
       return root

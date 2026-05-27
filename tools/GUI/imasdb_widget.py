@@ -13,7 +13,6 @@ class IMASDB_Widget(QWidget):
     self.ui.setupUi(self)
     self.ui.groupBox.setTitle(title)
     self.ui.pushButton_SelectPath.clicked.connect(self.SelectPath)
-    self.databasePath = os.getenv('HOME')
   
   
   def GetDBEntry(self, opt = 'a'):
@@ -29,11 +28,11 @@ class IMASDB_Widget(QWidget):
     ret = {}
     
     ret['uri'] = self.ui.lineEditURI.text()
+    ret['path'] = self.ui.lineEditPath.text()
     ret['user'] = self.ui.lineEditUser.text()
     ret['database'] = self.ui.lineEditDatabase.text()
     ret['shot'] = self.ui.lineEditShot.text()
-    ret['run'] = self.ui.lineEditRun.text()
-    ret['path'] = self.ui.lineEditPath.text()
+    ret['run'] = self.ui.lineEditRun.text() 
     ret['data_version'] = self.ui.lineEditVersion.text()
     
     return ret
@@ -55,10 +54,12 @@ class IMASDB_Widget(QWidget):
   
   
   def SelectPath(self):
-      dirTmp = QtWidgets.QFileDialog.getExistingDirectory(self, "Select folder with IMAS database files...", self.databasePath)
+      path_start = self.ui.lineEditPath.text()
+      if not os.path.isdir(path_start):
+        path_start = os.getenv('HOME')
+      dirTmp = QtWidgets.QFileDialog.getExistingDirectory(self, "Select folder with IMAS database files...", path_start)
 
       if dirTmp:
-        self.databasePath = dirTmp
         self.ui.lineEditPath.setText(dirTmp)
     
     
@@ -84,31 +85,54 @@ class IMASDB_Widget(QWidget):
   def SetXML(self, root):
     if (root == None):
       return
-    uri = ''
     
-    n_uri = root.find('uri')
-    if n_uri != None:
-      uri = n_uri.text
-      
+    uri = ""
+    node_uri = root.find('uri')
+    if node_uri != None:
+      uri = node_uri.text
+
+    path = ""
+    node_path = root.find('path')
+    if node_path != None:
+      path = node_path.text
+
+    database = ""
+    node_database = root.find('database')
+    if node_database != None:
+      database = node_database.text
+
+    if uri != "":
+      self.ui.tabWidget.setCurrentWidget(self.ui.tabURI)
+    elif path != "":
+      self.ui.tabWidget.setCurrentWidget(self.ui.tabPath)
+    elif database != "":
+      self.ui.tabWidget.setCurrentWidget(self.ui.tabKeys)
+
+    self.SetUITextFromXML(self.ui.lineEditURI, root.find('uri'), "")
+    self.SetUITextFromXML(self.ui.lineEditPath, root.find('path'), "")
     self.SetUITextFromXML(self.ui.lineEditUser, root.find('user'), "")
     self.SetUITextFromXML(self.ui.lineEditDatabase, root.find('database'), "")
     self.SetUITextFromXML(self.ui.lineEditShot, root.find('pulse'), "")
     self.SetUITextFromXML(self.ui.lineEditRun, root.find('run'), "")
-    self.SetUITextFromXML(self.ui.lineEditPath, root.find('path'), "")
     self.SetUITextFromXML(self.ui.lineEditVersion, root.find('data_version'), "3")
-
-    self.ui.lineEditURI.setText(self.GetURI())
 
 
   def GetURI(self):
-    uri = self.ui.lineEditURI.text()
-    if (uri == ''):
+    currentTab = self.ui.tabWidget.currentWidget()
+
+    if currentTab == self.ui.tabURI:
+      uri = self.ui.lineEditURI.text()
+      return uri
+    elif currentTab == self.ui.tabPath:
       m = self.GetDBMetadata()
       if m['path'] != '':
         backend_text = self.ui.comboBoxBackend_Path.currentText()
         backends_uri = {'MDS+':'mdsplus', 'HDF5':'hdf5', 'ASCII':'ascii'}
         uri = 'imas:' + backends_uri[backend_text] + '?path=' + m['path']
-      elif m['shot'] != '' and m['database'] != '':
+        return uri
+    elif currentTab == self.ui.tabKeys:
+      m = self.GetDBMetadata()
+      if m['shot'] != '' and m['database'] != '':
         backend_text = self.ui.comboBoxBackend_Legacy.currentText()
         backends_id = {'MDS+':imas.imasdef.MDSPLUS_BACKEND, 'HDF5':imas.imasdef.HDF5_BACKEND, 'ASCII':imas.imasdef.ASCII_BACKEND}
         uri = imas.DBEntry.build_uri_from_legacy_parameters(backend_id = backends_id[backend_text], 
@@ -117,8 +141,8 @@ class IMASDB_Widget(QWidget):
                                  db_name = m['database'], 
                                  user_name = m['user'], 
                                  data_version = m['data_version'])
-    
-    return uri
+        return uri
+    return ""
 
 
   def SetURI(self, uri):

@@ -404,7 +404,7 @@ class DINA_GUI(uiclass, baseclass):
         self.tabDatabase.setLayout(grid)
 
 
-        self.outIMASDB.SetURI("imas:mdsplus?path=sandbox")
+        self.outIMASDB.SetURI("imas:mdsplus?path=output")
 
         
         self.WorkflowData = {}
@@ -1160,7 +1160,7 @@ class DINA_GUI(uiclass, baseclass):
 
 
       if (currentTab == self.tabDatabase):
-        print(currentTab + ' is selected')
+        print(currentTab.objectName() + ' is selected')
 
       if (currentTab == self.tabGreenData):
         (filepath, selectedFilter) = QtWidgets.QFileDialog.getOpenFileName(self, "Open code parameters XML", self.directoryLoad, "XML Files (*.xml)")
@@ -1197,7 +1197,7 @@ class DINA_GUI(uiclass, baseclass):
         self.RefreshPulseSchedule()
 
       if (currentTab == self.tabTokamakData):
-        print(currentTab + ' is selected')
+        print(currentTab.objectName() + ' is selected')
 
       return
     

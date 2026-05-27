@@ -44,15 +44,15 @@ class Ui_IMASDB(object):
         self.tabWidget.addTab(self.tabURI, "")
         self.tabPath = QWidget()
         self.tabPath.setObjectName(u"tabPath")
-        self.horizontalLayout_2 = QHBoxLayout(self.tabPath)
+        self.verticalLayout_10 = QVBoxLayout(self.tabPath)
+        self.verticalLayout_10.setObjectName(u"verticalLayout_10")
+        self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.verticalLayout_11 = QVBoxLayout()
-        self.verticalLayout_11.setObjectName(u"verticalLayout_11")
         self.labelUser_8 = QLabel(self.tabPath)
         self.labelUser_8.setObjectName(u"labelUser_8")
         self.labelUser_8.setAlignment(Qt.AlignCenter)
 
-        self.verticalLayout_11.addWidget(self.labelUser_8)
+        self.horizontalLayout_2.addWidget(self.labelUser_8)
 
         self.comboBoxBackend_Path = QComboBox(self.tabPath)
         self.comboBoxBackend_Path.addItem("")
@@ -66,25 +66,20 @@ class Ui_IMASDB(object):
         self.comboBoxBackend_Path.setSizePolicy(sizePolicy)
         self.comboBoxBackend_Path.setEditable(False)
 
-        self.verticalLayout_11.addWidget(self.comboBoxBackend_Path)
+        self.horizontalLayout_2.addWidget(self.comboBoxBackend_Path)
 
-
-        self.horizontalLayout_2.addLayout(self.verticalLayout_11)
-
-        self.verticalLayout_10 = QVBoxLayout()
-        self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.pushButton_SelectPath = QPushButton(self.tabPath)
         self.pushButton_SelectPath.setObjectName(u"pushButton_SelectPath")
 
-        self.verticalLayout_10.addWidget(self.pushButton_SelectPath)
+        self.horizontalLayout_2.addWidget(self.pushButton_SelectPath)
+
+
+        self.verticalLayout_10.addLayout(self.horizontalLayout_2)
 
         self.lineEditPath = QLineEdit(self.tabPath)
         self.lineEditPath.setObjectName(u"lineEditPath")
 
         self.verticalLayout_10.addWidget(self.lineEditPath)
-
-
-        self.horizontalLayout_2.addLayout(self.verticalLayout_10)
 
         self.tabWidget.addTab(self.tabPath, "")
         self.tabKeys = QWidget()

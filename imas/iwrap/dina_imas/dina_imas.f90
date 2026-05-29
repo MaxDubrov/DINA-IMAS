@@ -1155,15 +1155,9 @@ equilibrium%time(CurTimeStep) = tt
        
        
         ! Gaps
-        ! 24 - fiducial ITER gaps
-        ! n_gaps=6 - Gaps for Kavin's controller
-        ! 1 - dsep
-        allocate(equilibrium%time_slice(CurTimeStep)%boundary_separatrix%gap(24+n_gaps))
-        do i=1,24
-          equilibrium%time_slice(CurTimeStep)%boundary_separatrix%gap(i)%value = wr_imas(105+i)
-        enddo
+        allocate(equilibrium%time_slice(CurTimeStep)%boundary_separatrix%gap(n_gaps))
         do i=1,n_gaps
-          equilibrium%time_slice(CurTimeStep)%boundary_separatrix%gap(24+i)%value = gaps(i)
+          equilibrium%time_slice(CurTimeStep)%boundary_separatrix%gap(i)%value = gaps(i)
         enddo
        
         ! Outer separatrix

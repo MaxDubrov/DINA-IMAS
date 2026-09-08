@@ -1338,7 +1338,7 @@ AllocIfNull1(summary%global_quantities%ip%value, tpl)
 AllocIfNull1(summary%global_quantities%v_loop%value, wr_imas(29))
 AllocIfNull1(summary%global_quantities%li%value, wr_imas(19))
 AllocIfNull1(summary%global_quantities%resistance%value, wr_imas(77))
-AllocIfNull1(summary%global_quantities%psi_external_average%value, wr_imas(32))
+AllocIfNull1(summary%global_quantities%psi_external_average%value, psi_ext)
 AllocIfNull1(summary%global_quantities%greenwald_fraction%value, wr_imas(22))
 
 AllocIfNull1(summary%global_quantities%beta_pol%value, betap)

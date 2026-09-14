@@ -54,8 +54,33 @@ def FillIDSElement(elem, d):
         elem.geometry.oblique.beta = beta
 
 
+def IDSElementData(elem):
+    name = elem.name
+    p = [1, 1, elem.turns_with_sign, 0]
 
-def ReadTokamakConfig(filename):
+    if elem.geometry.geometry_type == 2:
+        r = elem.geometry.rectangle.r
+        z = elem.geometry.rectangle.z
+        dr = elem.geometry.rectangle.width
+        dz = elem.geometry.rectangle.height
+        beta = 0.0
+        alpha = 0.0
+    elif elem.geometry.geometry_type == 3:
+        dr = elem.geometry.oblique.length_alpha
+        dz = elem.geometry.oblique.length_beta
+        alpha = elem.geometry.oblique.alpha
+        beta = elem.geometry.oblique.beta
+        r = elem.geometry.oblique.r + 0.5*(dr*math.cos(alpha) + dz*math.sin(beta))
+        z = elem.geometry.oblique.z + 0.5*(dr*math.sin(alpha) + dz*math.cos(beta))
+    else:
+        print("Unsupported element geometry type=" + str(elem.geometry.geometry_type))
+
+    geometry = [r, z, dr, dz, beta + math.pi/2., alpha]
+
+    return name, p, geometry
+
+
+def ReadTokamakConfig(f):
 
     pf_active = imas.pf_active()
     pf_passive = imas.pf_passive()
@@ -67,7 +92,6 @@ def ReadTokamakConfig(filename):
     wall.ids_properties.homogeneous_time = 0
     magnetics.ids_properties.homogeneous_time = 0
     
-    f = open(filename, 'rt')
 
     # Coils
     data = []
@@ -176,20 +200,18 @@ def ReadTokamakConfig(filename):
     for i in range(nlim):
         line = f.readline().strip().split()
         outline.r[i] = float(line[0])
-        outline.r[i] = float(line[1])
+        outline.z[i] = float(line[1])
     
-
-    f.close()
 
 
     # Area
-    # f.readline()
-    # line = f.readline().strip().split()
-    # rmin = float(line[0])
-    # rmax = float(line[1])
-    # line = f.readline().strip().split()
-    # zmin = float(line[0])
-    # zmax = float(line[1])
+    f.readline()
+    line = f.readline().strip().split()
+    rmin = float(line[0])
+    rmax = float(line[1])
+    line = f.readline().strip().split()
+    zmin = float(line[0])
+    zmax = float(line[1])
     
     
     return pf_active, pf_passive, wall, magnetics
@@ -199,104 +221,152 @@ def ReadTokamakConfig(filename):
 def SaveTokamakConfig(pf_active, pf_passive, wall, magnetics, f):
     
     # Coils
-    recsave = record["coils"]
-    f.write("COILS   number:   npf   !tokamak_config.dat  \n") # comment
-    f.write(recsave["common_geom"][0].text() + "\n") # npf
-    for coil in recsave["geometry"]:
-        self.SaveFilePart(f, coil)
-    f.write("res_PF:   npf  \n") # comment
-    f.write(str(recsave["common_res"][0]) + "\n") # npf
-    self.SaveFilePart(f, recsave["resist"])
+    f.write("COIL   number:   nelem \n")
+
+    nae = 0
+    for coil in pf_active.coil:
+        nae += len(coil.element)
+    f.write(str(nae) + "\n")
+    for i in range(len(pf_active.coil)):
+        coil = pf_active.coil[i]
+        for elem in coil.element:
+            name, props, geometry = IDSElementData(elem)
+            f.write(name + "\n")
+            s = "%d  %d  %f  %d \n"%(props[0], props[1], props[2], i+1)
+            f.write(s)
+            s = "%e  %e  %e  %e  %e  %e \n"%(geometry[0], geometry[1], geometry[2], geometry[3], geometry[4], geometry[5])
+            f.write(s)
+    f.write("res_PF:   npf \n")  
+    f.write(str(len(pf_active.coil)) + "\n")
+    for i in range(len(pf_active.coil)):
+        f.write(str(pf_active.coil[i].resistance) + "\n")
     
-    
+
     # Vessel
-    recsave = record["vessel"]
-    f.write("Vessel   number:   ncam  \n") # comment
-    f.write(str(recsave["common_geom"][0]) + "\n") # ncam
-    for coil in recsave["geometry"]:       
-        self.SaveFilePart(f, coil)     
-    f.write("res_ves:   ncam  \n") # comment
-    f.write(str(recsave["common_res"][0]) + "\n") # ncam
-    self.SaveFilePart(f, recsave["resist"])
+    f.write("Vessel   number:   nelem \n")
+    nae = 0
+    for loop in pf_passive.loop:
+        nae += len(loop.element)
+    f.write(str(nae) + "\n")
+    for i in range(len(pf_passive.loop)):
+        loop = pf_passive.loop[i]
+        for elem in loop.element:
+            name, props, geometry = IDSElementData(elem)
+            f.write(name + "\n")
+            s = "%d  %d  %f  %d \n"%(props[0], props[1], props[2], i+1)
+            f.write(s)
+            s = "%e  %e  %e  %e  %e  %e \n"%(geometry[0], geometry[1], geometry[2], geometry[3], geometry[4], geometry[5])
+            f.write(s)
+    f.write("res_VES:   ncam \n")  
+    f.write(str(len(pf_passive.loop)) + "\n")
+    for i in range(len(pf_passive.loop)):
+        f.write(str(pf_passive.loop[i].resistance) + "\n")
+
     
     
     # Loops
-    recsave = record["loops"]
+    nloop = len(magnetics.flux_loop)
     f.write("Loops   number:   kloop  \n") # comment
-    f.write(str(recsave["common"][0]) + "\n") # nloop
-    nloop = len(recsave["items"])
+    f.write(str(nloop) + "\n") # nloop
     for i in range(nloop):
-        s1 = recsave["items"][i]["r"].text()
-        s2 = recsave["items"][i]["z"].text()
+        loop = magnetics.flux_loop[i]
+        s1 = str(loop.position[0].r)
+        s2 = str(loop.position[0].z)
         f.write("  " + s1 + "  " + s2 + "\n")
     
     
     # Probes
-    recsave = record["probes"]
+    nprobes = len(magnetics.b_field_pol_probe)
     f.write("Probes   number   and   division:   kprobe   kpb \n") # comment
-    f.write(recsave["common"][0].text() + "  " + recsave["common"][1].text() + "\n") # nprobes, subdivisions
-    #self.SaveFilePart(f, recsave["common"])
-    nprobes = len(recsave["items"])
+    f.write(str(nprobes) + "  " + str(1) + "\n") # nprobes, subdivisions
     for i in range(nprobes):
-        s1 = recsave["items"][i]["r"].text()
-        s2 = recsave["items"][i]["z"].text()
-        s3 = recsave["items"][i]["a"].text()
-        s4 = recsave["items"][i]["l"].text()
+        probe = magnetics.b_field_pol_probe[i]
+        s1 = str(probe.position.r)
+        s2 = str(probe.position.z)
+        s3 = str(probe.poloidal_angle)
+        s4 = str(probe.length)
         f.write("  " + s1 + "  " + s2 + "  " + s3 + "  " + s4 + "\n")
 
 
+    rmin = 0.
+    rmax = 1.e6
+    zmin = -1.e6
+    zmax = 1.e6
     # Limiter
-    recsave = record["limiter"]
+    outline = wall.description_2d[0].limiter.unit[0].outline
+    nlim = len(outline.r)
+    rmin = min(outline.r)
+    rmax = max(outline.r)
+    zmin = min(outline.z)
+    zmax = max(outline.z)
     f.write("Limiter   number:   n_limiter  \n") # comment
-    f.write(str(recsave["common"][0]) + "\n") # nlim
-    nlim = len(recsave["items_r"])
+    f.write(str(nlim) + "\n") # nlim
     for i in range(nlim):
-        s1 = recsave["items_r"][i].text()
-        s2 = recsave["items_z"][i].text()
+        s1 = str(outline.r[i])
+        s2 = str(outline.z[i])
         f.write("  " + s1 + "  " + s2 + "\n")
     
     
     # Area
-    recsave = record["area"]
-    f.write(recsave["name"] + "\n")
-    s1 = recsave["items_r"][0].text()
-    s2 = recsave["items_r"][1].text()
+    f.write("area - R(1) R(2) Z(1) Z(2)" + "\n")
+    s1 = str(rmin*0.9)
+    s2 = str(rmax*1.1)
     f.write("  " + s1 + "  " + s2 + "\n")
-    s1 = recsave["items_z"][0].text()
-    s2 = recsave["items_z"][1].text()
+    s1 = str(zmin*1.1)
+    s2 = str(zmax*1.1)
     f.write("  " + s1 + "  " + s2 + "\n") 
 
 
+    return
 
 
 def main():
-  # MANAGEMENT OF INPUT ARGUMENTS
-  # ------------------------------
-  parser = argparse.ArgumentParser(description=\
+    # MANAGEMENT OF INPUT ARGUMENTS
+    # ------------------------------
+    parser = argparse.ArgumentParser(description=\
           '---- Converts machine data in DINA format, tokamak_config.dat file, to IDS')
-  parser.add_argument('-f','--file',help='Name of a file with machine configuration', required=True)
-  parser.add_argument('-u','--uri',help='URI of IMAS database to put output IDS',required=True)
-  
-  args = vars(parser.parse_args())
-  
-  file = args["file"]
-  uri  = args["uri"]
-  
-  
+    parser.add_argument('-f','--file',help='Name of a file with machine configuration', required=True)
+    parser.add_argument('-u','--uri',help='URI of IMAS database to put output IDS',required=True)
+    parser.add_argument('-a','--action',help='read (r) or write (w)',required=True)
 
-  pf_active, pf_passive, wall, magnetics = ReadTokamakConfig(file)
 
-  # Store the results
-  print("Put IDS's...")
-  imas_obj1 = imas.DBEntry(uri, 'w')
-  imas_obj1.create()
+    args = vars(parser.parse_args())
+
+    filename = args["file"]
+    uri  = args["uri"]
+    if args["action"] == 'r':
+        act = 'r'
+    elif args["action"] == 'w':
+        act = 'w'
+    else:
+        print("Action must be on of 'r' or 'w'")
   
-  imas_obj1.put(pf_active)
-  imas_obj1.put(pf_passive)
-  imas_obj1.put(magnetics)
-  imas_obj1.put(wall)
+    if act == 'r':
+        with open(filename, 'rt') as f:
+            pf_active, pf_passive, wall, magnetics = ReadTokamakConfig(f)
 
-  imas_obj1.close()
+        imas_obj1 = imas.DBEntry(uri, 'w')
+        imas_obj1.create()
+        imas_obj1.put(pf_active)
+        imas_obj1.put(pf_passive)
+        imas_obj1.put(magnetics)
+        imas_obj1.put(wall)
+        imas_obj1.close()
+
+
+    if act == 'w':
+
+        imas_obj1 = imas.DBEntry(uri, 'r')
+        imas_obj1.open()
+        pf_active = imas_obj1.get('pf_active')
+        pf_passive = imas_obj1.get('pf_passive')
+        magnetics = imas_obj1.get('magnetics')
+        wall = imas_obj1.get('wall')
+        imas_obj1.close()
+
+        with open(filename, 'wt') as f:
+            SaveTokamakConfig(pf_active, pf_passive, wall, magnetics, f)
+
 
 
 

@@ -9,7 +9,7 @@ INCDIR=../include
 
 FCFLAGS=-fPIC -w
 # COMPILER-SPECIFIC FLAGS
-ifeq ($(FC), ifort)
+ifneq ($(filter ifort ifx,$(FC)),)
   FCFLAGS+=-extend-source -nod-lines -save -init=zero -real-size 64
 else ifeq ($(FC), gfortran)
   FCFLAGS+=-ffixed-line-length-none -fd-lines-as-comments -fno-automatic -freal-4-real-8

@@ -16,7 +16,7 @@ F90DEF+=-D'GIT_VERSION="$(GIT_VERSION)"'
 
 F90FLAGS=-fPIC -w
 # COMPILER-SPECIFIC FLAGS
-ifeq ($(FC), ifort)
+ifneq ($(filter ifort ifx,$(FC)),)
   F90FLAGS+=-fpp
   F90FLAGS+=-real-size 64 -assume no2underscores -extend_source
 else ifeq ($(FC), gfortran)

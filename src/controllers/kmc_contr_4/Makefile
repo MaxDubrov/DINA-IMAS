@@ -2,11 +2,9 @@
 
 AR = ar
 ARFLAGS = -ru
-FC = gfortran
+CC ?= cc
+CFLAGS ?= -fPIC -w
 
-f2c= cc -fpic -w -g -O0
-
-FFLAGS = -w -ffixed-line-length-none -fd-lines-as-comments -fno-automatic -fPIC
 
 CONTROLSRC = t15_2.c t15_2_data.c \
 contr_curr.c contr_curr_wrapper.c contr_div.c contr_div_wrapper.c \
@@ -34,11 +32,8 @@ $(DINA_KAV): $(CONTROLOBJ)
 	$(RM) -r $@
 	$(AR) $(ARFLAGS) $@ $^
 
-%.o: %.f
-	$(FC) $(FFLAGS) -c $<
-
 %.o: %.c
-	$(f2c)  -c $<
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	-rm -f *.o 

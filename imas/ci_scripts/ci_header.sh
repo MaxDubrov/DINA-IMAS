@@ -49,6 +49,8 @@ if [ "$TOOLCHAIN" == "intel" ]; then
     module load iWrap/1.0.0-GCCcore-13.2.0
   
     module load IMAS-AL-Python/5.4.0-intel-2023b-DD-3.42.0
+    #module load IMAS-Data-Dictionary/3.42.2-GCCcore-13.2.0
+    #module load IMAS-Python/2.3.0-intel-2023b
     module load PySide6/6.6.2-GCCcore-13.2.0
     module load matplotlib/3.8.2-iimkl-2023b
   fi
@@ -86,6 +88,8 @@ if [ "$TOOLCHAIN" == "foss" ]; then
     module load iWrap/1.0.0-GCCcore-13.2.0
   
     module load IMAS-AL-Python/5.4.0-foss-2023b-DD-3.42.0
+    #module load IMAS-Data-Dictionary/3.42.2-GCCcore-13.2.0
+    #module load IMAS-Python/2.3.0-foss-2023b
     module load PySide6/6.6.2-GCCcore-13.2.0
     module load matplotlib/3.8.2-gfbf-2023b
   fi
@@ -113,6 +117,61 @@ export DINA_ROOT=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/../.." &> /dev/nu
 export GIT_URL=$(git remote get-url origin)
 export GIT_COMMIT_ID=$(git rev-parse --verify HEAD)
 export GIT_VERSION=$(git describe --tags --abbrev=0)
+
+
+# Common compiler flags
+F90FLAGS="-fPIC -w"
+FCFLAGS="-fPIC -w"
+CFLAGS=" -fPIC -w"
+
+# Compiler-specific flags
+case "$FC" in
+    ifort|ifx)
+        FCFLAGS+=" -extend-source -nod-lines -save -init=zero -real-size 64"
+        F90FLAGS+=" -fpp"
+        F90FLAGS+=" -real-size 64 -assume no2underscores -extend_source"
+        ;;
+
+    gfortran)
+        FCFLAGS+=" -ffixed-line-length-none -fd-lines-as-comments -fno-automatic -freal-4-real-8"
+        F90FLAGS+=" -cpp"
+        F90FLAGS+=" -freal-4-real-8 -fno-second-underscore -ffree-line-length-none"
+        ;;
+
+    *)
+        echo "Error: Unsupported Fortran compiler: $FC" >&2
+        exit 1
+        ;;
+esac
+
+F90FLAGS+=" -D'GIT_URL=\"${GIT_URL}\"'"
+F90FLAGS+=" -D'GIT_COMMIT_ID=\"${GIT_COMMIT_ID}\"'"
+F90FLAGS+=" -D'GIT_VERSION=\"${GIT_VERSION}\"'"
+
+
+
+# Disable advertisement of icx
+if [[ "$CC" == "icc" ]]; then
+  CFLAGS+=" -diag-disable=10441"
+fi
+
+
+# Debug flags
+DEBUG="-g -O0"
+
+if [[ "$TARGET" == "DEBUG" ]]; then
+    FCFLAGS+=" $DEBUG"
+    F90FLAGS+=" $DEBUG"
+    CFLAGS+=" $DEBUG"
+fi
+
+
+
+
+export FCFLAGS
+export F90FLAGS
+export CFLAGS
+
 
 
 export PYTHONPATH=${HOME}/IWRAP_ACTORS:${PYTHONPATH}

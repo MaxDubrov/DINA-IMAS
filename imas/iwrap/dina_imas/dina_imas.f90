@@ -257,11 +257,11 @@ else
 endif
 
 
-npfa2=size(em_coupling0%mutual_grid_active,2)
-npfp2=size(em_coupling0%mutual_grid_passive,2)
-ngrid2=size(em_coupling0%mutual_grid_passive,1)
-kloop2=size(em_coupling0%mutual_loops_grid,1)
-kprobe2=size(em_coupling0%field_probes_grid,1)
+npfa2=size(em_coupling0%mutual_plasma_active,2)
+npfp2=size(em_coupling0%mutual_plasma_passive,2)
+ngrid2=size(em_coupling0%mutual_plasma_passive,1)
+kloop2=size(em_coupling0%mutual_loops_plasma,1)
+kprobe2=size(em_coupling0%b_field_pol_probes_plasma,1)
 
 
 
@@ -346,14 +346,14 @@ flush(6)
 ! Greens
 
 vesgreen(1:kloop,1:npfp) = em_coupling0%mutual_loops_passive(1:kloop,1:npfp)
-vesprobe(1:kprobe,1:npfp) = em_coupling0%field_probes_passive(1:kprobe,1:npfp)
+vesprobe(1:kprobe,1:npfp) = em_coupling0%b_field_pol_probes_passive(1:kprobe,1:npfp)
 
 write(*,*) 'vesgreen, vesprobe set OK'
 flush(6)
 
-vesarr = em_coupling0%mutual_grid_passive
-if (associated(em_coupling0%mutual_loops_grid)) pslgreen = transpose(em_coupling0%mutual_loops_grid)
-if (associated(em_coupling0%field_probes_grid)) bprgreen = transpose(em_coupling0%field_probes_grid)
+vesarr = em_coupling0%mutual_plasma_passive
+if (associated(em_coupling0%mutual_loops_plasma)) pslgreen = transpose(em_coupling0%mutual_loops_plasma)
+if (associated(em_coupling0%b_field_pol_probes_plasma)) bprgreen = transpose(em_coupling0%b_field_pol_probes_plasma)
 
 write(*,*) 'pslgreen, bprgreen set OK'
 flush(6)
@@ -381,9 +381,9 @@ do i=1,npfa
   enddo
 
   pfgreen(:,ncirc(i)) = pfgreen(:,ncirc(i)) + dircirc(i)*em_coupling0%mutual_loops_active(:,i)/pf_turns(i)
-  pfprobe(:,ncirc(i)) = pfprobe(:,ncirc(i)) + dircirc(i)*em_coupling0%field_probes_active(:,i)/pf_turns(i)
+  pfprobe(:,ncirc(i)) = pfprobe(:,ncirc(i)) + dircirc(i)*em_coupling0%b_field_pol_probes_active(:,i)/pf_turns(i)
   pfc(:,ncirc(i)) = pfc(:,ncirc(i)) + dircirc(i)*em_coupling0%mutual_passive_active(:,i)/pf_turns(i)
-  fluxarr(:,ncirc(i)) = fluxarr(:,ncirc(i)) + dircirc(i)*em_coupling0%mutual_grid_active(:,i)/pf_turns(i)
+  fluxarr(:,ncirc(i)) = fluxarr(:,ncirc(i)) + dircirc(i)*em_coupling0%mutual_plasma_active(:,i)/pf_turns(i)
 enddo
 
 
@@ -603,7 +603,7 @@ call write_cputime(0.d0, 0.d0, 1)
   
   if (associated(pf_active0%coil(1)%current%data)) then 
   
-    print*, 'PF currents are assigned from pf_active'
+  print*, 'PF currents are assigned from pf_active'
   do i=1,npfa
     if (associated(pf_active0%coil(i)%current%data)) then
       pf(ncirc(i)) = dircirc(i)*pf_active0%coil(i)%current%data(1)
@@ -612,15 +612,7 @@ call write_cputime(0.d0, 0.d0, 1)
   enddo
 
   else
-  
-  print*, 'PF currents are assigned from pulse_schedule'
-  do i=1,npfa
-    if (associated(pulse_schedule%pf_active%coil(i)%current%reference%data)) then
-      pf(ncirc(i)) = dircirc(i)*pulse_schedule%pf_active%coil(i)%current%reference%data(1)
-      print *,' i pfa==',i,pulse_schedule%pf_active%coil(i)%current%reference%data(1)
-    endif
-  enddo
-
+  print*, 'PF currents are not found'
   endif
   
   print *,'Active currents are assigned to:'

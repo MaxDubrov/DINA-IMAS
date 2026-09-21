@@ -40,7 +40,8 @@ if [ "$TOOLCHAIN" == "intel" ]; then
   #module load IMAS/3.39.0-4.11.10-foss-2023b
 
   #AL5
-  module load IMAS/3.39.0-intel-2023b
+  #module load IMAS/3.39.0-intel-2023b
+  module load IMAS/3.42.0-intel-2023b
   
   #module load mpich2/3.1.3-intel
   module load XMLlib/3.3.2-intel-compilers-2023.2.1
@@ -55,7 +56,8 @@ else
   #module load IMAS/3.39.0-4.11.10-foss-2023b
 
   #AL5
-  module load IMAS/3.39.0-foss-2023b
+  #module load IMAS/3.39.0-foss-2023b
+  module load IMAS/3.42.0-foss-2023b
 
   #module load mpich2/3.1.3-gnu
   module load XMLlib/3.3.2-GCC-13.2.0

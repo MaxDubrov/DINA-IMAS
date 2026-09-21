@@ -1569,70 +1569,70 @@ class DINA_GUI(uiclass, baseclass):
       self.SupplyName = [supply.identifier for supply in ps.pf_active.supply]
       self.GapName = [gap.identifier for gap in ps.position_control.gap]
       
-      data = [ps.flux_control.i_plasma.reference.data]
-      time = ps.flux_control.i_plasma.reference.time
+      data = [ps.flux_control.i_plasma.reference]
+      time = ps.flux_control.time
       self.PulseSchedule['ip'].SetData(time, data, ['Ip'])
 
-      data = [coil.resistance_additional.reference.data for coil in ps.pf_active.coil]
-      time = ps.pf_active.coil[0].resistance_additional.reference.time
+      data = [coil.resistance_additional.reference for coil in ps.pf_active.coil]
+      time = ps.pf_active.time
       self.PulseSchedule['pf_res'].SetData(time, data, names=self.CoilName)
 
-      data = [coil.current.reference.data for coil in ps.pf_active.coil]
-      time = ps.pf_active.coil[0].current.reference.time
+      data = [coil.current.reference for coil in ps.pf_active.coil]
+      time = ps.pf_active.time
       nt = len(time)
       for i in range(len(data)):
         if len(data[i]) != nt:
           data[i] = numpy.zeros(nt)
       self.PulseSchedule['pf_curr'].SetData(time, data, names=self.CoilName)
 
-      data = [supply.voltage.reference.data for supply in ps.pf_active.supply]
-      time = ps.pf_active.supply[0].voltage.reference.time
+      data = [supply.voltage.reference for supply in ps.pf_active.supply]
+      time = ps.pf_active.time
       nt = len(time)
       for i in range(len(data)):
         if len(data[i]) != nt:
           data[i] = numpy.zeros(nt)
       self.PulseSchedule['pf_volt'].SetData(time, data, names=self.SupplyName)
 
-      data = [ps.ec.power.reference.data]
-      time = ps.ec.power.reference.time
+      data = [ps.ec.power_launched.reference]
+      time = ps.ec.time
       self.PulseSchedule['power_ec'].SetData(time, data, names=['P_EC'])
 
-      data = [ps.ic.power.reference.data]
-      time = ps.ic.power.reference.time
+      data = [ps.ic.power.reference]
+      time = ps.ic.time
       self.PulseSchedule['power_ic'].SetData(time, data, names=['P_IC'])
 
-      data = [ion.n_i_volume_average.reference.data for ion in ps.density_control.ion]
+      data = [ion.n_i_volume_average.reference for ion in ps.density_control.ion]
       self.Ions = [IonData(label=ion.label) for ion in ps.density_control.ion]
       names = [ion.label for ion in ps.density_control.ion]
-      time = ps.density_control.ion[0].n_i_volume_average.reference.time
+      time = ps.density_control.time
       self.PulseSchedule['density'].SetData(time, data, names=names)
 
-      data = [ps.position_control.elongation.reference.data]
-      time = ps.position_control.elongation.reference.time
+
+      
+      time = ps.position_control.time
+
+      data = [ps.position_control.elongation.reference]
       self.PulseSchedule['elong'].SetData(time, data, names=['elong'])
 
-      data = [gap.value.reference.data for gap in ps.position_control.gap]
-      time = ps.position_control.gap[0].value.reference.time
+      data = [gap.value.reference for gap in ps.position_control.gap]
       self.PulseSchedule['gaps'].SetData(time, data, names=self.GapName)    
 
-      data = [ps.position_control.geometric_axis.r.reference.data]
-      time = ps.position_control.geometric_axis.r.reference.time
+      data = [ps.position_control.geometric_axis.r.reference]
       self.PulseSchedule['r_ax'].SetData(time, data, names=['R_ax'])   
       
-      data = [ps.position_control.minor_radius.reference.data]
-      time = ps.position_control.minor_radius.reference.time
+      data = [ps.position_control.minor_radius.reference]
       self.PulseSchedule['a_pl'].SetData(time, data, names=['a']) 
 
-      data = [gap.value.reference.data for gap in ps_dw.position_control.gap]
-      time = ps_dw.position_control.gap[0].value.reference.time
+
+      time = ps_dw.position_control.time
+
+      data = [gap.value.reference for gap in ps_dw.position_control.gap]
       self.PulseSchedule['gaps_term'].SetData(time, data, names=self.GapName)  
 
-      data = [ps_dw.position_control.geometric_axis.r.reference.data]
-      time = ps_dw.position_control.geometric_axis.r.reference.time
+      data = [ps_dw.position_control.geometric_axis.r.reference]
       self.PulseSchedule['r_ax_term'].SetData(time, data, names=['R_ax'])   
       
-      data = [ps_dw.position_control.minor_radius.reference.data]
-      time = ps_dw.position_control.minor_radius.reference.time
+      data = [ps_dw.position_control.minor_radius.reference]
       self.PulseSchedule['a_pl_term'].SetData(time, data, names=['a']) 
 
 
@@ -1649,8 +1649,8 @@ class DINA_GUI(uiclass, baseclass):
 
       wf = self.PulseSchedule['ip']
       ps.flux_control.i_plasma.reference_name = RefName_RUFT
-      ps.flux_control.i_plasma.reference.time = wf.GetTime()
-      ps.flux_control.i_plasma.reference.data = wf.GetData(0)
+      ps.flux_control.time = wf.GetTime()
+      ps.flux_control.i_plasma.reference = wf.GetData(0)
 
       
       wf = self.PulseSchedule['pf_res']
@@ -1659,15 +1659,14 @@ class DINA_GUI(uiclass, baseclass):
         ps.pf_active.coil[i].name = self.CoilName[i]
         ps.pf_active.coil[i].identifier = self.CoilName[i]
 
+      ps.pf_active.time = wf.GetTime()
       for i in range(wf.NumData()):
         ps.pf_active.coil[i].resistance_additional.reference_name = RefName_RUFT
-        ps.pf_active.coil[i].resistance_additional.reference.time = wf.GetTime()
-        ps.pf_active.coil[i].resistance_additional.reference.data = wf.GetData(i)
+        ps.pf_active.coil[i].resistance_additional.reference = wf.GetData(i)
       wf = self.PulseSchedule['pf_curr']
       for i in range(wf.NumData()):
         ps.pf_active.coil[i].current.reference_name = RefName_RUFT
-        ps.pf_active.coil[i].current.reference.time = wf.GetTime()
-        ps.pf_active.coil[i].current.reference.data = wf.GetData(i)
+        ps.pf_active.coil[i].current.reference = wf.GetData(i)
 
 
       wf = self.PulseSchedule['pf_volt']
@@ -1676,21 +1675,22 @@ class DINA_GUI(uiclass, baseclass):
         ps.pf_active.supply[i].name = self.SupplyName[i]
         ps.pf_active.supply[i].identifier = self.SupplyName[i]
         ps.pf_active.supply[i].voltage.reference_name = RefName_RUFT
-        ps.pf_active.supply[i].voltage.reference.time = wf.GetTime()
-        ps.pf_active.supply[i].voltage.reference.data = wf.GetData(i)
+        ps.pf_active.supply[i].voltage.reference = wf.GetData(i)
 
 
       wf = self.PulseSchedule['power_ec']
-      ps.ec.power.reference_name = RefName_RUFT
-      ps.ec.power.reference.time = wf.GetTime()
-      ps.ec.power.reference.data = wf.GetData(0)
+      ps.ec.power_launched.reference_name = RefName_RUFT
+      ps.ec.time = wf.GetTime()
+      ps.ec.power_launched.reference = wf.GetData(0)
+      
 
       wf = self.PulseSchedule['power_ic']
       ps.ic.power.reference_name = RefName_RUFT
-      ps.ic.power.reference.time = wf.GetTime()
-      ps.ic.power.reference.data = wf.GetData(0)
+      ps.ic.time = wf.GetTime()
+      ps.ic.power.reference = wf.GetData(0)
 
       wf = self.PulseSchedule['density']
+      ps.density_control.time = wf.GetTime()
       ps.density_control.ion.resize(wf.NumData())
       for i in range(wf.NumData()):
         ps.density_control.ion[i].label = self.Ions[i].label
@@ -1699,13 +1699,13 @@ class DINA_GUI(uiclass, baseclass):
         ps.density_control.ion[i].element[0].m = self.Ions[i].m
         ps.density_control.ion[i].element[0].atoms_n = 1
         ps.density_control.ion[i].n_i_volume_average.reference_name = RefName_RUFT
-        ps.density_control.ion[i].n_i_volume_average.reference.time = wf.GetTime()
-        ps.density_control.ion[i].n_i_volume_average.reference.data = wf.GetData(i)
+        ps.density_control.ion[i].n_i_volume_average.reference = wf.GetData(i)
 
       wf = self.PulseSchedule['elong']
+      ps.position_control.time = wf.GetTime()
+
       ps.position_control.elongation.reference_name = RefName_RUFT
-      ps.position_control.elongation.reference.time = wf.GetTime()
-      ps.position_control.elongation.reference.data = wf.GetData(0)
+      ps.position_control.elongation.reference = wf.GetData(0)
 
       wf = self.PulseSchedule['gaps']
       ps.position_control.gap.resize(wf.NumData())
@@ -1715,21 +1715,19 @@ class DINA_GUI(uiclass, baseclass):
         ps.position_control.gap[i].name = self.GapName[i]
         ps.position_control.gap[i].identifier = self.GapName[i]
         ps.position_control.gap[i].value.reference_name = RefName_RUFT
-        ps.position_control.gap[i].value.reference.time = wf.GetTime()
-        ps.position_control.gap[i].value.reference.data = wf.GetData(i)
+        ps.position_control.gap[i].value.reference = wf.GetData(i)
 
       wf = self.PulseSchedule['r_ax']
       ps.position_control.geometric_axis.r.reference_name = RefName_RUFT
-      ps.position_control.geometric_axis.r.reference.time = wf.GetTime()
-      ps.position_control.geometric_axis.r.reference.data = wf.GetData(0)
+      ps.position_control.geometric_axis.r.reference = wf.GetData(0)
 
       wf = self.PulseSchedule['a_pl']
       ps.position_control.minor_radius.reference_name = RefName_RUFT
-      ps.position_control.minor_radius.reference.time = wf.GetTime()
-      ps.position_control.minor_radius.reference.data = wf.GetData(0)
+      ps.position_control.minor_radius.reference = wf.GetData(0)
 
 
       wf = self.PulseSchedule['gaps_term']
+      ps_dw.position_control.time = wf.GetTime()
       ps_dw.position_control.gap.resize(wf.NumData())
       for i in range(wf.NumData()):
         ps_dw.position_control.gap[i].r = self.Rg[i]*1.e-2
@@ -1737,18 +1735,15 @@ class DINA_GUI(uiclass, baseclass):
         ps_dw.position_control.gap[i].name = self.GapName[i] + '_term'
         ps_dw.position_control.gap[i].identifier = self.GapName[i] + '_term'
         ps_dw.position_control.gap[i].value.reference_name = RefName_RD
-        ps_dw.position_control.gap[i].value.reference.time = wf.GetTime()
-        ps_dw.position_control.gap[i].value.reference.data = wf.GetData(i)
+        ps_dw.position_control.gap[i].value.reference = wf.GetData(i)
 
       wf = self.PulseSchedule['r_ax_term']
       ps_dw.position_control.geometric_axis.r.reference_name = RefName_RD
-      ps_dw.position_control.geometric_axis.r.reference.time = wf.GetTime()
-      ps_dw.position_control.geometric_axis.r.reference.data = wf.GetData(0)
+      ps_dw.position_control.geometric_axis.r.reference = wf.GetData(0)
 
       wf = self.PulseSchedule['a_pl_term']
       ps_dw.position_control.minor_radius.reference_name = RefName_RD
-      ps_dw.position_control.minor_radius.reference.time = wf.GetTime()
-      ps_dw.position_control.minor_radius.reference.data = wf.GetData(0)
+      ps_dw.position_control.minor_radius.reference = wf.GetData(0)
 
 
       return ps, ps_dw

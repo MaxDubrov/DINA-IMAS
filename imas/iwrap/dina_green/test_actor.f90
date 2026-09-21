@@ -186,8 +186,8 @@ write(*,*) 'em_coupling array sizes:'
 write(*,*) 'active_active: ', size(em_coupling%mutual_active_active,1), size(em_coupling%mutual_active_active,2)
 write(*,*) 'passive_passive: ', size(em_coupling%mutual_passive_passive,1), size(em_coupling%mutual_passive_passive,2)
 write(*,*) 'passive_active: ', size(em_coupling%mutual_passive_active,1), size(em_coupling%mutual_passive_active,2)
-write(*,*) 'grid_active: ', size(em_coupling%mutual_grid_active,1), size(em_coupling%mutual_grid_active,2)
-write(*,*) 'grid_passive: ', size(em_coupling%mutual_grid_passive,1), size(em_coupling%mutual_grid_passive,2)
+write(*,*) 'grid_active: ', size(em_coupling%mutual_plasma_active,1), size(em_coupling%mutual_plasma_active,2)
+write(*,*) 'grid_passive: ', size(em_coupling%mutual_plasma_passive,1), size(em_coupling%mutual_plasma_passive,2)
 
 
   call imas_open(uri_out, CREATE_PULSE, idx, error_flag)

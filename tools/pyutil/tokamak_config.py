@@ -308,12 +308,13 @@ def SaveTokamakConfig(pf_active, pf_passive, wall, magnetics, f):
     
     
     # Area
+    dz = zmax - zmin
     f.write("area - R(1) R(2) Z(1) Z(2)" + "\n")
     s1 = str(rmin*0.9)
     s2 = str(rmax*1.1)
     f.write("  " + s1 + "  " + s2 + "\n")
-    s1 = str(zmin*1.1)
-    s2 = str(zmax*1.1)
+    s1 = str(zmin - dz*0.1)
+    s2 = str(zmax + dz*0.1)
     f.write("  " + s1 + "  " + s2 + "\n") 
 
 

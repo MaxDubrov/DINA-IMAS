@@ -1113,10 +1113,8 @@ class DINA_GUI(uiclass, baseclass):
         self.directoryLoad = dirTmp
         #self.labelDirLoad.setText(self.directoryLoad)
         
-        imas_obj1 = imas.DBEntry('imas:mdsplus?user=public;pulse=111001;run=203;database=ITER_MD;version=3', 'r')
-        imas_obj1.open()
-        pfa_md = imas_obj1.get('pf_active')
-        imas_obj1.close()
+        with imas.DBEntry('imas:mdsplus?user=public;pulse=111001;run=203;database=ITER_MD;version=3', 'r') as imas_obj1:
+          pfa_md = imas_obj1.get('pf_active')
         
         ion_label = 'D'
         ps, ps_dw = pulse_schedule.GetPulseSchedule(self.directoryLoad, pfa_md, ion_label)
@@ -1188,11 +1186,10 @@ class DINA_GUI(uiclass, baseclass):
         self.RefreshControlData()
 
       if (currentTab == self.tabPulseSchedule):
-        imas_obj = self.inptIMASDB_PS.GetDBEntry('r')
-        imas_obj.open()
-        ps = imas_obj.get('pulse_schedule', occurrence = 0)
-        ps_dw = imas_obj.get('pulse_schedule', occurrence = 1)
-        imas_obj.close()
+        with self.inptIMASDB_PS.GetDBEntry('r') as imas_obj:
+          ps = imas_obj.get('pulse_schedule', occurrence = 0)
+          ps_dw = imas_obj.get('pulse_schedule', occurrence = 1)
+
         self.LoadPulseSchedule(ps, ps_dw)
         self.RefreshPulseSchedule()
 
@@ -1333,11 +1330,9 @@ class DINA_GUI(uiclass, baseclass):
 
       if (currentTab == self.tabPulseSchedule):
         psch,psch_dw = self.SavePulseSchedule()
-        imas_obj = self.inptIMASDB_PS.GetDBEntry('w')
-        imas_obj.open()
-        imas_obj.put(psch, occurrence = 0)
-        imas_obj.put(psch_dw, occurrence = 1)
-        imas_obj.close()
+        with self.inptIMASDB_PS.GetDBEntry('w') as imas_obj:
+          imas_obj.put(psch, occurrence = 0)
+          imas_obj.put(psch_dw, occurrence = 1)
 
       if (currentTab == self.tabTokamakData):
         print(currentTab + ' is selected')
@@ -1637,11 +1632,12 @@ class DINA_GUI(uiclass, baseclass):
 
 
     def SavePulseSchedule(self):
+      ids_factory = imas.IDSFactory()
 
-      ps = imas.pulse_schedule()
+      ps = ids_factory.pulse_schedule()
       ps.ids_properties.homogeneous_time = 0
       
-      ps_dw = imas.pulse_schedule()
+      ps_dw = ids_factory.pulse_schedule()
       ps_dw.ids_properties.homogeneous_time = 0
       
       RefName_RUFT = 'RU+FT'
@@ -1696,7 +1692,7 @@ class DINA_GUI(uiclass, baseclass):
         ps.density_control.ion[i].label = self.Ions[i].label
         ps.density_control.ion[i].element.resize(1)
         ps.density_control.ion[i].element[0].z_n = float(self.Ions[i].z)
-        ps.density_control.ion[i].element[0].m = self.Ions[i].m
+        ps.density_control.ion[i].element[0].a = self.Ions[i].m
         ps.density_control.ion[i].element[0].atoms_n = 1
         ps.density_control.ion[i].n_i_volume_average.reference_name = RefName_RUFT
         ps.density_control.ion[i].n_i_volume_average.reference = wf.GetData(i)
@@ -2532,7 +2528,6 @@ class DINA_GUI(uiclass, baseclass):
     def PlotOutput(self):
 
         imas_entry_init = self.IMASDB_plot.GetDBEntry()
-        imas_entry_init.open()
         
         idslist = {}
         
@@ -2544,7 +2539,6 @@ class DINA_GUI(uiclass, baseclass):
         idslist['core_sources'] = imas_entry_init.get('core_sources')
         idslist['summary'] = imas_entry_init.get('summary')
         
-        imas_entry_init.close()
 
         
         self.sum1 = idslist['summary']

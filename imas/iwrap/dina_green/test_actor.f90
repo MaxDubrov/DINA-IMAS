@@ -163,6 +163,7 @@ call imas_close(idx_m)
 
 else
 write(*,*) 'No magnetics IDS'
+  magnetics%ids_properties%homogeneous_time=2
 endif
 
 flush(6)
@@ -208,7 +209,7 @@ write(*,*) 'grid_passive: ', size(em_coupling%mutual_plasma_passive,1), size(em_
     call ids_put(idx,"equilibrium",equilibrium)
   
     write(*,*)  'Put magnetics'
-    !call ids_put(idx,"magnetics",magnetics)
+    call ids_put(idx,"magnetics",magnetics)
 	
   call imas_close(idx)
 	

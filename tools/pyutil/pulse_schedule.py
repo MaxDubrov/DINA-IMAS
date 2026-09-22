@@ -220,8 +220,9 @@ def GetIonLabel(path):
 
 def GetPulseSchedule(path, pfa, ion_label):
   
-  psch = imas.pulse_schedule()
-  psch_dw = imas.pulse_schedule()
+  ids_factory = imas.IDSFactory()
+  psch = ids_factory.pulse_schedule()
+  psch_dw = ids_factory.pulse_schedule()
 
   psch.ids_properties.homogeneous_time = 0
   psch_dw.ids_properties.homogeneous_time = 0
@@ -337,7 +338,7 @@ def GetPulseSchedule(path, pfa, ion_label):
       record = joinrecords(record0,record,t_1D)
       iobj = psch.density_control.ion[2]
     else:
-      iobj = type(psch.density_control.ion[0])()
+      iobj = copy.deepcopy(psch.density_control.ion[0])
       psch.density_control.ion.append(iobj)
 
     gamma = np.interp(time_dens, record.time, record.data[0])

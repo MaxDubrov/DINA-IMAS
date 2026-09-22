@@ -81,11 +81,12 @@ def IDSElementData(elem):
 
 
 def ReadTokamakConfig(f):
+    ids_factory = imas.IDSFactory()
 
-    pf_active = imas.pf_active()
-    pf_passive = imas.pf_passive()
-    wall = imas.wall()
-    magnetics = imas.magnetics()
+    pf_active = ids_factory.pf_active()
+    pf_passive = ids_factory.pf_passive()
+    wall = ids_factory.wall()
+    magnetics = ids_factory.magnetics()
 
     pf_active.ids_properties.homogeneous_time = 0
     pf_passive.ids_properties.homogeneous_time = 0
@@ -346,24 +347,22 @@ def main():
         with open(filename, 'rt') as f:
             pf_active, pf_passive, wall, magnetics = ReadTokamakConfig(f)
 
-        imas_obj1 = imas.DBEntry(uri, 'w')
-        imas_obj1.create()
-        imas_obj1.put(pf_active)
-        imas_obj1.put(pf_passive)
-        imas_obj1.put(magnetics)
-        imas_obj1.put(wall)
-        imas_obj1.close()
+        with imas.DBEntry(uri, 'w') as imas_obj1:
+            imas_obj1.put(pf_active)
+            imas_obj1.put(pf_passive)
+            imas_obj1.put(magnetics)
+            imas_obj1.put(wall)
+
 
 
     if act == 'w':
 
-        imas_obj1 = imas.DBEntry(uri, 'r')
-        imas_obj1.open()
-        pf_active = imas_obj1.get('pf_active')
-        pf_passive = imas_obj1.get('pf_passive')
-        magnetics = imas_obj1.get('magnetics')
-        wall = imas_obj1.get('wall')
-        imas_obj1.close()
+        with imas.DBEntry(uri, 'r') as imas_obj1:
+            pf_active = imas_obj1.get('pf_active')
+            pf_passive = imas_obj1.get('pf_passive')
+            magnetics = imas_obj1.get('magnetics')
+            wall = imas_obj1.get('wall')
+
 
         with open(filename, 'wt') as f:
             SaveTokamakConfig(pf_active, pf_passive, wall, magnetics, f)

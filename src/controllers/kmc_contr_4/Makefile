@@ -23,7 +23,6 @@ CONTROLOBJ = $(CONTROLSRC:.c=.o)
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 DINA_KAV := kmc.a
-#DINA_KAV := $(current_dir).a
 
 all: $(DINA_KAV)
 

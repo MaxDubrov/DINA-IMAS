@@ -12,7 +12,6 @@
 # ENVIRONMENT VARIABLES:
 #   TARGET           - Target to use DEBUG or RELEASE
 #   TOOLCHAIN        - Toolchain to use (default: foss)
-#   COMMON_MODULES   - Common modules for all toolchains (comma-separated)
 #   FOSS_MODULES     - FOSS-specific modules (comma-separated)  
 #   INTEL_MODULES    - Intel-specific modules (comma-separated)
 #
@@ -29,39 +28,27 @@ module purge
 
 TOOLCHAIN=${TOOLCHAIN:-foss}
 
-DEFAULT_COMMON_MODULES="iWrap/1.0.0-GCCcore-13.2.0"
-DEFAULT_FOSS_MODULES="IMAS/3.42.0-foss-2023b,XMLlib/3.3.2-GCC-13.2.0"
-DEFAULT_INTEL_MODULES="IMAS/3.42.0-intel-2023b,XMLlib/3.3.2-intel-compilers-2023.2.1"
+DEFAULT_FOSS_MODULES="iWrap/2.0.0-foss-2023b,XMLlib/3.3.2-GCC-13.2.0,IMAS-Fortran/5.6.0-foss-2023b-DD-3.42.2"
+DEFAULT_INTEL_MODULES="iWrap/2.0.0-intel-2023b,IMAS-Fortran/5.6.0-intel-2023b-DD-3.42.2,XMLlib/3.3.2-intel-compilers-2023.2.1"
 
-COMMON_MODULES_LIST="${COMMON_MODULES:-$DEFAULT_COMMON_MODULES}"
 FOSS_MODULES_LIST="${FOSS_MODULES:-$DEFAULT_FOSS_MODULES}"
 INTEL_MODULES_LIST="${INTEL_MODULES:-$DEFAULT_INTEL_MODULES}"
 
-IFS=',' read -ra COMMON_MODULES <<< "$COMMON_MODULES_LIST"
 IFS=',' read -ra FOSS_MODULES <<< "$FOSS_MODULES_LIST"
 IFS=',' read -ra INTEL_MODULES <<< "$INTEL_MODULES_LIST"
 
 case "$TOOLCHAIN" in
     *foss*)
         echo "... foss toolchain"
-        MODULES=("${COMMON_MODULES[@]}")
         MODULES+=("${FOSS_MODULES[@]}")
-        export FC=gfortran
-        export CC=gcc
         ;;
     *intel*)
         echo "... intel toolchain"
-        MODULES=("${COMMON_MODULES[@]}")
         MODULES+=("${INTEL_MODULES[@]}")
-        export FC=ifort
-        export CC=icc
         ;;
     *)
         echo "... default toolchain"
-        MODULES=("${COMMON_MODULES[@]}")
         MODULES+=("${FOSS_MODULES[@]}")
-        export FC=gfortran
-        export CC=gcc
         ;;
 esac
 
@@ -70,6 +57,23 @@ echo "${MODULES[@]}" | tr " " "\n"
 
 module load "${MODULES[@]}"
 echo "Done loading modules"
+
+if [[ -z "${FC:-}" ]]; then
+    if command -v ifort >/dev/null 2>&1; then
+        export FC=ifort
+	export CC=icc
+    elif command -v ifx >/dev/null 2>&1; then
+        export FC=ifx
+	export CC=icx
+    elif command -v gfortran >/dev/null 2>&1; then
+        export FC=gfortran
+	export CC=gcc
+    else
+        echo "ERROR: Could not find a supported Fortran compiler (ifort/ifx/gfortran). Please set FC explicitly." >&2
+        return 1
+    fi
+fi
+
 
 export TARGET="${TARGET:-DEBUG}"
 export PYTHONPATH=${HOME}/IWRAP_ACTORS:${PYTHONPATH}
@@ -138,6 +142,7 @@ export CFLAGS
 
 
 echo "TOOLCHAIN: $TOOLCHAIN"
+echo "FC: $FC"
 echo "TARGET: $TARGET"
 echo "DINA_ROOT: $DINA_ROOT"
 echo "GIT_URL: $GIT_URL"

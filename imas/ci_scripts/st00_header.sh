@@ -96,13 +96,13 @@ case "$FC" in
     ifort|ifx)
         FCFLAGS+=" -extend-source -nod-lines -save -init=zero -real-size 64"
         F90FLAGS+=" -fpp"
-        F90FLAGS+=" -real-size 64 -assume no2underscores -extend_source"
+        F90FLAGS+=" -real-size 64 -assume no2underscores -extend_source -mcmodel=medium -Wl,--no-relax"
         ;;
 
     gfortran)
         FCFLAGS+=" -ffixed-line-length-none -fd-lines-as-comments -fno-automatic -freal-4-real-8"
         F90FLAGS+=" -cpp"
-        F90FLAGS+=" -freal-4-real-8 -fno-second-underscore -ffree-line-length-none"
+        F90FLAGS+=" -freal-4-real-8 -fno-second-underscore -ffree-line-length-none -mcmodel=medium -Wl,--no-relax"
         ;;
 
     *)
